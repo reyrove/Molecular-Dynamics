@@ -1,0 +1,55 @@
+# LAMMPS input script for FCC copper system with deposition
+
+# 1. Initialization
+units metal
+boundary p p p
+atom_style atomic
+lattice fcc 3.61
+region box block 0 10 0 10 0 10
+create_box 2 box
+create_atoms 1 region box
+mass * 63.54
+
+# 2. Define Regions and Groups
+group box region box
+
+# Define spherical region for deletion
+region n sphere 18.05 18.05 18.05 5 units box
+group n region n
+group del subtract box n
+delete_atoms group del
+
+# Set atom type for the group 'n'
+set group n type 1
+
+# 3. Pair styles and coefficients
+pair_style hybrid eam lj/cut 12
+pair_coeff * * eam cu_u3.eam
+pair_coeff 1 2 lj/cut 0.52 2.3
+neigh_modify delay 0
+
+# 4. Create new group for deposition (atoms type 2)
+group addatom type 2 
+
+# 5. Compute properties
+compute add addatom temp
+
+# 6. Apply fixes
+fix 1 addatom nve
+fix 2 n langevin 300 300 0.1 5834434
+fix 3 n nve
+
+# 7. Define deposition region and fix for deposition
+region s block 0 10 0 10 8 9
+fix 4 addatom deposit 100 2 100 187309 region s near 0.1 vz -5 -5
+
+# 8. Thermo settings
+thermo_style custom step temp
+thermo_modify temp add
+thermo 1000
+
+# 9. Dump settings
+dump 1 all custom 1000 dump.txt id type x y z
+
+# 10. Run the simulation
+run 100000

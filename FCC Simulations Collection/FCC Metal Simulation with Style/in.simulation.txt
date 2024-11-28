@@ -1,0 +1,134 @@
+# Set the atomic units for the system
+units metal
+
+# Define boundary conditions: periodic in all directions (x, y, z)
+boundary p p p
+
+# Set atom style to "atomic", suitable for metals and simple systems
+atom_style atomic
+
+# Define lattice structure for the simulation: FCC with lattice constant of 3.61 Å
+lattice fcc 3.61
+
+# Create the simulation box: a block with x from 0 to 15, y from 0 to 15, z from 0 to 20
+region box block 0 15 0 15 0 20
+
+# Create a simulation box with 2 atom types (usually for multiple components or elements)
+create_box 2 box
+
+# Create atoms in the defined region "box", all atoms will have atom type 1
+create_atoms 1 region box
+
+# Set the mass for all atoms (assuming it's copper, with atomic mass 63.54 g/mol)
+mass * 63.54
+
+# Define a region "v" as a block from 0 to 15 in x, 0 to 15 in y, and 6 to 20 in z
+region v block 0 15 0 15 6 20
+
+# Create a group "v" from atoms in region "v"
+group v region v
+
+# Define a spherical region "n" centered at (18.05, 18.05, 32.49) with radius 5 in box units
+region n sphere 18.05 18.05 32.49 5 units box
+
+# Create a group "n" from atoms in region "n"
+group n region n
+
+# Create a new group "del" by subtracting group "n" from group "v" (atoms in "v" but not in "n")
+group del subtract v n
+
+# Delete the atoms in group "del"
+delete_atoms group del
+
+# Define a region "s" as a block from 0 to 15 in x, 0 to 15 in y, and 0 to 6 in z
+region s block 0 15 0 15 0 6
+
+# Create a group "s" from atoms in region "s"
+group s region s
+
+# Define a region "f" as a block from 0 to 15 in x, 0 to 15 in y, and 0 to 2 in z
+region f block 0 15 0 15 0 2
+
+# Create a group "f" from atoms in region "f"
+group f region f
+
+# Define a region "t" as a block from 0 to 15 in x, 0 to 15 in y, and 2 to 4 in z
+region t block 0 15 0 15 2 4
+
+# Create a group "t" from atoms in region "t"
+group t region t
+
+# Define a region "m" as a block from 0 to 15 in x, 0 to 15 in y, and 4 to 6 in z
+region m block 0 15 0 15 4 6
+
+# Create a group "m" from atoms in region "m"
+group m region m
+
+# Set atom type 1 for all atoms in group "n"
+set group n type 1
+
+# Set atom type 2 for all atoms in group "s"
+set group s type 2
+
+# Define the pair style as hybrid: EAM potential for copper and Lennard-Jones potential for interactions between type 1 and type 2 atoms with a cutoff of 15
+pair_style hybrid eam lj/cut 15
+
+# Apply the EAM potential for copper (using the cu_u3.eam potential file)
+pair_coeff * * eam cu_u3.eam
+
+# Apply the Lennard-Jones potential between atoms of type 1 and type 2 with epsilon=0.52 and sigma=2.3
+pair_coeff 1 2 lj/cut 0.52 2.3
+
+# Define a compute to calculate the temperature of group "s" (with style "temp")
+compute 1 s temp
+
+# Set the thermo output to display the current step and the temperature computed in group "s"
+thermo_style custom step c_1
+
+# Set the frequency of thermo output to every 10 steps
+thermo 10
+
+# Apply a Nose-Hoover thermostat (fix 1) to group "s", with a temperature target of 300K, a time constant of 0.01, and temperature controlled between 300K and 300K
+fix 1 s nvt temp 300 300 0.01
+
+# Dump the atomic information (id, type, and coordinates) of all atoms every 100 steps into dump.txt
+dump 1 all custom 100 dump.txt id type x y z
+
+# Set the time step for the simulation to 0.001 fs
+timestep 0.001
+
+# Run the simulation for 1000 steps
+run 1000
+
+# Unfix the previous fix (fix 1) applied to group "s"
+unfix 1
+
+# Apply a force-zeroing fix (fix 2) to group "f" (set force to 0 in all directions for atoms in "f")
+fix 2 f setforce 0 0 0
+
+# Apply a Nose-Hoover thermostat (fix 3) to group "t", with a temperature target of 300K, a time constant of 0.01, and temperature controlled between 300K and 300K
+fix 3 t nvt temp 300 300 0.01
+
+# Apply a constant energy (NVE) integration fix (fix 4) to group "m"
+fix 4 m nve
+
+# Set the velocity of atoms in group "n" to a specific value (0 in x, 40 in y, and 0 in z) in box units
+velocity n set 0 40 0 units box
+
+# Apply a constant energy (NVE) integration fix (fix 5) to group "n"
+fix 5 n nve
+
+# Define a compute to calculate the temperature of group "m" (with style "temp")
+compute 2 m temp
+
+# Define a compute to calculate the group/group interactions between groups "n" and "m" (outputting the forces in x, y, z components)
+compute 3 n group/group m
+
+# Set the thermo output to display the current step, the temperature of group "m", and the force components between groups "n" and "m"
+thermo_style custom step c_2 c_3[1] c_3[2] c_3[3]
+
+# Set the frequency of thermo output to every 50 steps
+thermo 50
+
+# Run the simulation for 3000 steps
+run 3000

@@ -1,0 +1,56 @@
+# Initialize simulation
+units real                                # Use real units (appropriate for molecular dynamics with Lennard-Jones potentials)
+boundary p p p                            # Periodic boundary conditions in all directions (x, y, z)
+atom_style atomic                         # Atom style suitable for atomic simulations (no bonds or angles)
+lattice fcc 3.61                          # Define a face-centered cubic (FCC) lattice with a lattice constant of 3.61 units
+region box block 0 10 0 10 0 10           # Define a simulation box from (0,0,0) to (10,10,10) units in x, y, and z directions
+create_box 2 box                          # Create a simulation box with 2 atom types (for the substrate and gas)
+create_atoms 1 region box                  # Create atoms of type 1 in the entire box region (substrate atoms)
+mass 1 63.54                               # Set the mass of atom type 1 to 63.54 (for example, Copper (Cu) mass)
+mass 2 83                                  # Set the mass of atom type 2 to 83 (for example, for a different species like Argon (Ar))
+group box region box                       # Define the group "box" that includes all atoms in the box
+region s block 0 10 0 10 0 3              # Define a region "s" in the lower part of the box (z-coordinates from 0 to 3)
+group s region s                           # Create the group "s" to include atoms in the region "s"
+group del subtract box s                   # Create the "del" group to include atoms outside the region "s" (subtracts "s" from "box")
+delete_atoms group del                     # Delete the atoms in the "del" group (remove the gas atoms that overlap the substrate)
+
+# Define interaction potential styles
+pair_style hybrid eam lj/cut 10            # Use a hybrid pair style with EAM (Embedded Atom Model) and LJ (Lennard-Jones) potential, cutoff distance 10 units
+pair_coeff 1 1 eam Cu_u3.eam               # Set the EAM potential for type 1 atoms using the file "Cu_u3.eam" (usually for metals like Copper)
+pair_coeff 2 2 lj/cut 0.0002 2.3          # Set the Lennard-Jones parameters for type 2 atoms (epsilon = 0.0002, sigma = 2.3)
+pair_coeff 1 2 lj/cut 2 2.3               # Set the Lennard-Jones parameters for interactions between type 1 and type 2 atoms (epsilon = 2, sigma = 2.3)
+
+# Define groups for different atom types
+group substrate type 1                    # Group all atoms of type 1 (substrate atoms) into the "substrate" group
+group gas type 2                          # Group all atoms of type 2 (gas atoms) into the "gas" group
+
+# Thermodynamic settings
+thermo 1                                  # Output thermodynamic data every 1 step (for debugging or tracking in real-time)
+compute_modify thermo_temp dynamic yes     # Enable dynamic temperature computation (adjusts based on atom movement)
+variable chempot equal -2000              # Define a variable for the chemical potential with a value of -2000 (in real units)
+variable density equal atoms/vol          # Define a variable for the system's density (atoms per unit volume)
+
+# Chemical potential conversion (convert to kcal/mol)
+variable chempotkcal equal ${chempot}/503.219  # Convert the chemical potential to kcal/mol (appropriate for the GCMC fix)
+
+# Fixes and dynamics
+fix 1 substrate setforce 0 0 0            # Fix 1: Set the force on all substrate atoms (type 1) to zero (no motion for the substrate)
+fix 2 gas gcmc 1 100 100 2 43425467 300 ${chempotkcal} 0.5  # Fix 2: GCMC setup for gas atoms (type 2):
+# - 1 insertion per cycle
+# - 100 steps between insertion attempts
+# - 100 total insertions per cycle
+# - 2 deletion attempts per cycle
+# - Seed 43425467
+# - Temperature 300 K
+# - Chemical potential (converted to kcal/mol)
+# - Chemical potential scaling factor of 0.5
+
+# Thermodynamic output customization
+thermo_style custom step atoms temp v_chempot v_density  # Output step, atom count, temperature, chemical potential, and density at each step
+
+# Dump atomic positions
+dump 1 all custom 1 dump.txt id type x y z  # Dump atom data (ID, type, x, y, z) every 1 step to "dump.txt" for tracking atomic positions
+
+# Run the simulation
+run 10000                                # Run the simulation for 10,000 timesteps
+

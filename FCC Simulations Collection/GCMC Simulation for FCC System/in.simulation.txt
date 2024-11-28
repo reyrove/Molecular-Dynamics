@@ -1,0 +1,39 @@
+# Initialization
+units real                           # Use real units (appropriate for typical molecular simulations with Lennard-Jones potentials)
+atom_style atomic                     # Define atomic style (suitable for single atoms, no bonds)
+boundary p p p                         # Periodic boundary conditions in all directions (x, y, z)
+lattice fcc 0.1                        # Set up a face-centered cubic (FCC) lattice with a lattice constant of 0.1 units
+region box block 0 1000 0 1000 0 1000  # Define a box region of 1000 x 1000 x 1000 units
+create_box 1 box                       # Create a simulation box with 1 atom type
+mass 1 83.8                             # Set mass of atom type 1 to 83.8 (e.g., might represent some element like Rb)
+
+# Pair Style and Coefficients
+pair_style lj/cut 10                   # Use the Lennard-Jones potential with a cutoff distance of 10 units
+pair_coeff 1 1 0.33 3.69               # Define the Lennard-Jones parameters for atom type 1 (epsilon = 0.33, sigma = 3.69)
+
+# Thermo Settings
+thermo 100                             # Output thermodynamic data every 100 steps
+
+# Variables
+variable chempot equal -2000           # Define a variable for chemical potential (in appropriate units, like kcal/mol)
+variable density equal atoms/vol       # Define a variable for density (atoms per unit volume)
+
+# GCMC Fix (Grand Canonical Monte Carlo)
+fix 1 all gcmc 1 100 100 1 37462 300 ${chempot} 0.5  # Grand Canonical Monte Carlo (GCMC) fix with:
+# - 1 insertion per cycle (1)
+# - 100 steps between each insertion attempt (100)
+# - 100 total insertions per cycle (100)
+# - 1 deletion attempt per cycle (1)
+# - Random seed 37462
+# - Target temperature 300 K
+# - Chemical potential ${chempot} (in kcal/mol)
+# - Chemical potential conversion factor of 0.5
+
+# Thermo Output
+thermo_style custom step atoms v_chempot v_density  # Output step, number of atoms, chemical potential, and density
+
+# Dump Settings
+dump 1 all custom 100 dump.txt id type x y z  # Dump atomic data (ID, type, x, y, z coordinates) every 100 steps to dump.txt
+
+# Run the simulation
+run 10000                             # Run the simulation for 10,000 timesteps
