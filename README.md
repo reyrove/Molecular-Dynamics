@@ -40,34 +40,6 @@ Take the GCMC skills you learned and bring them to any FCC system you want. From
   - Control over particle densities—**it’s your universe**
   - Periodic boundaries, because everything goes on forever
 
-## File Breakdown 
-
-Here’s how we’re keeping it organized so you can find what you need without breaking a sweat:
-
-```
-FCC_Simulations/
-│
-├── FCC_Copper_Deposition_Simulation/
-│   ├── README.md                # Copper deposition breakdown
-│   ├── copper_deposition.in      # Input script for the copper magic
-│   └── results/                 # Your results (dumps, logs, the works)
-│
-├── FCC_Metal_Simulation_with_Style/
-│   ├── README.md                # Metal simulation with serious style
-│   ├── metal_simulation_style.in # Input script for hybrid potential magic
-│   └── results/                 # Results folder (we got receipts)
-│
-├── GCMC_Simulation_for_FCC_Lattice/
-│   ├── README.md                # GCMC for FCC lattice - it’s real
-│   ├── gcmc_fcc_lattice.in      # GCMC script for the FCC lattice
-│   └── results/                 # Check out the results
-│
-└── GCMC_Simulation_for_FCC_System/
-    ├── README.md                # GCMC for FCC system—flexibility for days
-    ├── gcmc_fcc_system.in       # Input script for generalized GCMC
-    └── results/                 # Yep, results are in here too
-```
-
 ## How to Use This Like a Pro 
 
 1. **Clone this repo** to your local machine. It’s as easy as:
@@ -112,5 +84,5 @@ We’ve gotta shout out the creators and maintainers of **LAMMPS**. Seriously, t
 
 ---
 
-There you go—simulations, sass, and all the info you need to make your material science simulations *pop*. Go ahead and make some magic happen. 
+There you go—simulations, sass, and all the info you need to make your material science simulations *pop*. Go ahead and make some magic happen.
 
