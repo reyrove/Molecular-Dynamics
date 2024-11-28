@@ -2,7 +2,7 @@
 
 Welcome to the ultimate **FCC Simulations Collection**! This is your one-stop shop for some seriously awesome LAMMPS simulations. Whether you're into **copper deposition**, **metal interactions**, or playing around with **Grand Canonical Monte Carlo (GCMC)** simulations, this repo's got you covered. So grab your coffee (or something stronger), and let's dive into the world of FCC lattice systems.
 
-## What’s Inside? 🕶️
+## What’s Inside? 
 
 ### 1. **FCC Copper Deposition Simulation**  
 **Copper, baby!** Watch those copper atoms fall like they’re the hottest thing on the block. We’re simulating the process where copper atoms are deposited onto an FCC lattice. Expect a smooth, steady interaction using the **EAM potential**—because nothing says "metal" like copper.
